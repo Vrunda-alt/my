@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mystery Deck Microsite</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ff6ec4, #7873f5, #ffe29f);
+      background-size: 300% 300%;
+      animation: gradientBG 10s ease infinite;
+      margin: 0;
+      padding: 0;
+      color: white;
+      text-align: center;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .screen { display: none; padding: 40px 20px; }
+    .active { display: block; }
+    input, button, select, textarea {
+      margin: 10px auto;
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+    }
+    button { background-color: #ff6ec4; color: white; cursor: pointer; }
+    .photo-preview { width: 200px; margin-top: 20px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<div id="screen1" class="screen active">
+  <h1>Unlock The Mystery</h1>
+  <button onclick="nextScreen(2)">Start</button>
+</div>
+
+<div id="screen2" class="screen">
+  <h2>Tell Us About You</h2>
+  <input type="number" id="age" placeholder="How old are you?" />
+  <input type="text" id="nickname" placeholder="What do people call you?" />
+  <p id="ageWarning" style="color:red; display:none;">You must be 18+ to participate.</p>
+  <button onclick="validateAge()">Next</button>
+</div>
+
+<div id="screen3" class="screen">
+  <h2>Guess the 3 hidden flavors</h2>
+  <input type="text" id="flavor1" placeholder="Flavor 1" />
+  <input type="text" id="flavor2" placeholder="Flavor 2" />
+  <input type="text" id="flavor3" placeholder="Flavor 3" />
+  <p id="attemptsLeft">Attempts Left: 5</p>
+  <button onclick="checkFlavors()">Lock Guess</button>
+</div>
+
+<div id="screen4" class="screen">
+  <h2>YOU CRACKED IT!</h2>
+  <img src="fruit_burst_image.png" class="photo-preview" />
+  <button onclick="nextScreen(5)">Spin the Wheel</button>
+</div>
+
+<div id="screen5" class="screen">
+  <h2>Spin the Wheel</h2>
+  <img src="spinning_wheel.png" class="photo-preview" />
+  <button onclick="revealReward()">Spin</button>
+</div>
+
+<div id="screen6" class="screen">
+  <h2 id="rewardMessage">You Won:</h2>
+  <p>Enter your details to claim your reward.</p>
+  <input type="text" id="phone" placeholder="Contact Number (10 digits)" />
+  <textarea id="address" placeholder="Shipping Address"></textarea>
+  <p id="formWarning" style="color:red; display:none;">Please enter valid info.</p>
+  <button onclick="validateForm()">Submit</button>
+</div>
+
+<div id="screen7" class="screen">
+  <h2>Select Your Favorite Flavor</h2>
+  <select id="favFlavor">
+    <option value="">-- Select Flavor --</option>
+    <option value="Strawberry Mint">Strawberry Mint</option>
+    <option value="Orange Cranberry">Orange Cranberry</option>
+    <option value="Green Apple Basil">Green Apple Basil</option>
+  </select>
+  <button onclick="showTrait()">Continue</button>
+</div>
+
+<div id="screen8" class="screen">
+  <h2>Your Flavor Says You're...</h2>
+  <p><strong id="traitTitle">The Explorer</strong></p>
+  <p id="traitPara">You’re curious, adventurous, and always seeking the next story.</p>
+  <p>Would you like this as a Polaroid?</p>
+  <button onclick="nextScreen(9)">Yes</button>
+  <button onclick="nextScreen(11)">No</button>
+</div>
+
+<div id="screen9" class="screen">
+  <h2>Upload Your Photo</h2>
+  <input type="file" accept="image/*" onchange="previewImage(event)" />
+  <img id="userPhoto" class="photo-preview" style="display:none;" />
+  <button onclick="checkPhotoUploaded()">Generate Polaroid</button>
+</div>
+
+<div id="screen10" class="screen">
+  <h2>Your Polaroid</h2>
+  <img src="polaroid_chaos_calmer_final.png" class="photo-preview" />
+  <a href="polaroid_chaos_calmer_final.png" download><button>Download</button></a>
+</div>
+
+<div id="screen11" class="screen">
+  <h2>Thank you for participating!</h2>
+  <p>Your mystery was your mirror.</p>
+</div>
+
+<script>
+let attempts = 5;
+const correctFlavors = ["strawberry mint", "orange cranberry", "green apple basil"];
+const rewardOptions = ["Polaroid Camera", "Free Pack", "₹100 UPI", "Paid Trip", "Concert Ticket", "The Mystery Box", "₹200", "Better Luck Next Time"];
+
+function normalize(str) {
+  return str.trim().toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function nextScreen(n) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen" + n).classList.add("active");
+}
+
+function validateAge() {
+  const age = parseInt(document.getElementById("age").value);
+  document.getElementById("ageWarning").style.display = (age < 18) ? "block" : "none";
+  if (age >= 18) nextScreen(3);
+}
+
+function checkFlavors() {
+  const guesses = [1,2,3].map(i => normalize(document.getElementById("flavor" + i).value));
+  const correct = correctFlavors.map(normalize);
+  let matched = 0;
+  correct.forEach(f => { if (guesses.includes(f)) matched++; });
+  if (matched === 3) {
+    nextScreen(4);
+  } else {
+    attempts--;
+    document.getElementById("attemptsLeft").innerText = "Attempts Left: " + attempts;
+    if (attempts <= 0) nextScreen(7);
+  }
+}
+
+function revealReward() {
+  const reward = rewardOptions[Math.floor(Math.random() * rewardOptions.length)];
+  document.getElementById("rewardMessage").innerText = "You Won: " + reward;
+  nextScreen(6);
+}
+
+function validateForm() {
+  const phone = document.getElementById("phone").value;
+  const address = document.getElementById("address").value.trim();
+  const validPhone = /^[0-9]{10}$/.test(phone);
+  document.getElementById("formWarning").style.display = (validPhone && address) ? "none" : "block";
+  if (validPhone && address) nextScreen(7);
+}
+
+function showTrait() {
+  const flavor = document.getElementById("favFlavor").value;
+  if (flavor) {
+    document.getElementById("traitTitle").innerText = "The Explorer";
+    document.getElementById("traitPara").innerText = "You’re curious, adventurous, and always seeking the next story.";
+    nextScreen(8);
+  }
+}
+
+function previewImage(event) {
+  const reader = new FileReader();
+  reader.onload = function(){
+    const img = document.getElementById('userPhoto');
+    img.src = reader.result;
+    img.style.display = 'block';
+  }
+  reader.readAsDataURL(event.target.files[0]);
+}
+
+function checkPhotoUploaded() {
+  const img = document.getElementById('userPhoto');
+  if (!img.src || img.style.display === 'none') {
+    alert("Please upload a photo to continue.");
+  } else {
+    nextScreen(10);
+  }
+}
+</script>
+</body>
+</html>
